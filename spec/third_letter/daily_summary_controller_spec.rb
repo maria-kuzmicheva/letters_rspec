@@ -65,49 +65,33 @@ class User
 end
 
 RSpec.describe DailySummaryController do
-  describe '#call' do
+  describe '#initialize' do
   let(:email) { 'test@test.com' }
+  let(:double_daily_summary_email) { instance_double(DailySummaryEmail) }
 
-    context 'when current user' do
-      let(:current_user) { User.new(email: email, email_notifications_enabled: true) }
-      let(:daily_summary_email) { DailySummaryEmail.new(recipient: current_user) }
-
-      before do
-        allow(daily_summary_email).to receive(:test).and_return(200)
-      end
-
-      it { expect(daily_summary_email.test).to eq(200) }
-    end
-
-    context 'when user & email_notifications_enabled true' do
-      
-      let(:user) { User.new(email: email, email_notifications_enabled: true) }
-      let(:daily_summary_email) { DailySummaryEmail.new(recipient: user) }
-      let(:recipient) { :user }
+     context 'when current user' do
+      let(:current_user) { [ User.new(email: email, email_notifications_enabled: true) ] }
 
       before do
-        allow(daily_summary_email).to receive(:deliver).and_return(201)
+        allow(DailySummaryEmail).to receive(:new).with(recipient: current_user).and_return(double_daily_summary_email)
+        allow(double_daily_summary_email).to receive(:test).and_return(200)
+        allow(double_daily_summary_email).to receive(:deliver).and_return(201)
       end
 
-      it '#deliver' do
-      daily_summary_email.deliver
-
-      expect(daily_summary_email).to have_received(:deliver)
-      expect(daily_summary_email.deliver).to eq(201)
-      end
+      it { expect(double_daily_summary_email.test).to eq(200) }
+      it { expect(double_daily_summary_email.deliver).to eq(201) }
     end
+
 
     context 'when email_notifications_enabled false' do
-
-      let(:user) { User.new(email: email, email_notifications_enabled: false) }
-      let(:daily_summary_email) { DailySummaryEmail.new(recipient: user) }
-      let(:recipient) { :user }
+      let(:recipient) { [User.new(email: email, email_notifications_enabled: false)] }
 
       before do
-        allow(daily_summary_email).to receive(:deliver).and_return(nil)
+        allow(DailySummaryEmail).to receive(:new).with(recipient: recipient).and_return(double_daily_summary_email)
+        allow(double_daily_summary_email).to receive(:deliver).and_return(nil)
       end
 
-      it { expect(daily_summary_email.deliver).to eq(nil) }
+      it { expect(double_daily_summary_email.deliver).to eq(nil) }
     end
   end
 end

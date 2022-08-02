@@ -59,13 +59,10 @@ class QuestionMail
   end
 end
 RSpec.describe Question do
-  describe '#call' do
+  describe '#initialize' do
 
-    let(:text) { 'test' }
-    let(:author) { 'author' }
     let(:summary) { 'test summary' }
-    let(:response) { Response.new(text: text, author: author) }
-    let(:responses) { [response] }
+    let(:responses) { [Response.new(text: 'test', author: 'author')] }
     let(:double_question_mail) { instance_double(QuestionMail) }
     let(:question) { Question.new(summary: summary, responses: responses) }
     let(:double_response_text) { instance_double(ResponseText) }
@@ -73,7 +70,7 @@ RSpec.describe Question do
     let(:recipient) { expert }
 
     before do
-      allow(ResponseText).to receive(:new).with(text).and_return(double_response_text)
+      allow(ResponseText).to receive(:new).with(text: 'test').and_return(double_response_text)
       allow(double_response_text).to receive(:score).and_return(3)
       allow(QuestionMail).to receive(:new).with(question, recipient: recipient).and_return(double_question_mail)
       allow(double_question_mail).to receive(:deliver).and_return(true)
@@ -81,9 +78,8 @@ RSpec.describe Question do
 
     context 'when success' do
 
-    it { expect(double_question_mail).to have_received(:deliver) }
-    it { expect(double_response_text).to have_received(:score) }
     it { expect(double_response_text.score).to eq(3) }
+    it { expect(double_question_mail.deliver).to eq(true) }
     end
   end
 end
